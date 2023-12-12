@@ -102,10 +102,10 @@ async def a_list_a(message:types.Message):
         else:
             await message.answer("Нет зарегестрированных администраторов")
 
-# Эта функция обрабатывает сообщения с текстом "Список заказчиков" от администратора,
+# Эта функция обрабатывает сообщения от администратора,
 # проверяет его права доступа и, если они соответствуют,
 # формирует список зарегистрированных заказчиков для отправки в ответ.
-@router_admin.message(F.text == "Список заказчиков")
+@router_admin.message(F.text == "Список клиентов")
 async def a_list_c(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist[5] == "admin" and exist[6] == 1:

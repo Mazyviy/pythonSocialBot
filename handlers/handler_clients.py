@@ -168,35 +168,15 @@ async def c_taxi(message: types.Message, state: FSMContext):
 # ввести конечный адрес, иначе просит ввести адресс отправления еще раз
 @router_client.message(lambda message: message.content_type == types.ContentType.TEXT, ClassStateTaxi.first_adress_taxi)
 async def c_taxi_first_adress(message: types.Message, state=FSMContext):
-    geolocator = Nominatim(user_agent="coordinateconverter")
-    location = geolocator.geocode(message.text, addressdetails=True, language="ru")
-
-    if location:
-        address_parts = location.address.split(', ')
-        reversed_address = ', '.join(reversed(address_parts))
-        await state.update_data(first_adress_taxi=reversed_address)
-    else:
-        print("Местоположение не найдено. Введите еще раз")
-        await ClassStateTaxi.first_adress_taxi()
-
-    await message.answer("Напишите конечный адрес (город улица дом)")
+    await state.update_data(first_adress_taxi=message.text)
+    await message.answer("Напишите конечный адрес (город улица дом)",reply_markup=kb.keyboard_cancel())
     await state.set_state(ClassStateTaxi.second_adress_taxi)
 
 # проверяет введеный конечный адрес на существование, если все good
 # просит клиента выберать важность задачи, иначе просит ввести конечный адресс еще раз
 @router_client.message(lambda message: message.content_type == types.ContentType.TEXT, ClassStateTaxi.second_adress_taxi)
 async def c_taxi_second_adress(message: types.Message, state=FSMContext):
-    geolocator = Nominatim(user_agent="coordinateconverter")
-    location = geolocator.geocode(message.text, addressdetails=True, language="ru")
-
-    if location:
-        address_parts = location.address.split(', ')
-        reversed_address = ', '.join(reversed(address_parts))
-        await state.update_data(second_adress_taxi=reversed_address)
-    else:
-        print("Местоположение не найдено. Введите еще раз")
-        await ClassStateTaxi.second_adress_taxi()
-
+    await state.update_data(second_adress_taxi=message.text)
     await message.answer("Выберите важность задачи", reply_markup=kb.keyboard_urgency_task())
     await state.set_state(ClassStateTaxi.task_urgency_taxi)
 
@@ -208,10 +188,10 @@ async def b_taxi_finish(message: types.Message, state=FSMContext):
     first_adress = data.get('first_adress_taxi')
     second_adress = data.get('second_adress_taxi')
     task_urgency_taxi = data.get('task_urgency_taxi')
-    adress = f"Такси от \n• {first_adress} \nдо \n• {second_adress}"
+    adress = f"Такси от ({first_adress}) до ({second_adress})"
     await db.add_task("Социальное такси",adress,"create",task_urgency_taxi, message.from_user.id)
-    await state.clear()
     await message.answer("Ваше заявка зарегистрирована", reply_markup=kb.keyboard_menu_c())
+    await state.clear()
 
 # просит подтвердить клиента, что волонтер выполнил заявку
 @router_client.callback_query(CbDataCompletedTask.filter())

@@ -33,7 +33,7 @@ def keyboard_menu_a()->types.ReplyKeyboardMarkup:
         ],
         [
             types.KeyboardButton(text="Список волонтеров"),
-            types.KeyboardButton(text="Список заказчиков"),
+            types.KeyboardButton(text="Список клиентов"),
         ],
         [
             types.KeyboardButton(text="Список администраторов"),
