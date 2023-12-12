@@ -86,7 +86,7 @@ async def del_user(user_id):
 
 # функция возвращает список пользователей из базы данных, удовлетворяющих указанным ролям и статусам.
 async def get_list_users(user_role, user_status):
-    cursor.execute(f"SELECT user_id, user_role,user_name, user_number, id FROM users WHERE user_role=? AND user_status=?", (user_role, user_status,))
+    cursor.execute(f"SELECT user_id, user_role, user_name, user_number, id FROM users WHERE user_role=? AND user_status=?", (user_role, user_status,))
     return cursor.fetchall()
 
 # После выполнения запроса, функция возвращает список кортежей c столбцами

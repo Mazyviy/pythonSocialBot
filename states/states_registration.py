@@ -1,8 +1,8 @@
 from aiogram.fsm.state import StatesGroup, State
 
-class ClassStateRegestration(StatesGroup):
-    role_regestration = State()
-    name_regestration=State()
-    date_regestration=State()
-    number_regestration=State()
-    adr_regestration=State()
+class ClassStateRegistration(StatesGroup):
+    role_registration = State()
+    name_registration=State()
+    date_registration=State()
+    number_registration=State()
+    adr_registration=State()

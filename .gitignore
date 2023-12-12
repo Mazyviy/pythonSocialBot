@@ -3,5 +3,5 @@
 /Scripts/
 /Lib/
 /config/.env
+pyvenv.cfg
 /database/database.db
-123.py
