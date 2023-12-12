@@ -61,18 +61,15 @@ async def set_date_registration(message: types.Message, state:FSMContext):
 
 # Функция для продолжения процесса регистрации
 # на данном этапе ролучаем номер от пользователя и просим указать адрес проживания
-"""@router_registration.message(ClassStateRegestration.number_regestration)
-async def set_number_registration(message: types.Message, state:FSMContext):
-    await db.upd_data_in_db("user_number",message.contact.phone_number, message.from_user.id)
-    await message.answer("Теперь укажите ваш адрес проживания. Для этого требуется включить GPS и нажать на кнопку, если вы дома, или просто введите адрес в формате (город улица дом)!", reply_markup=kb.keyboard_request_location())
-    await state.set_state(ClassStateRegestration.adr_regestration)"""
-
 @router_registration.message(ClassStateRegestration.number_regestration)
 async def set_number_registration(message: types.Message, state:FSMContext):
     await db.upd_data_in_db("user_number",message.contact.phone_number, message.from_user.id)
     await message.answer("Теперь укажите ваш адрес проживания. Введите адрес в формате (город, улица, дом, кв)!")
     await state.set_state(ClassStateRegestration.adr_regestration)
 
+# Функция для завершения процесса регистрации
+# на данном этапе ролучаем адрес от пользователя и проверяем адрес на существование
+# Далее отпрает уведомление администраторам для подтверждения пользователя
 @router_registration.message(ClassStateRegestration.adr_regestration)
 async def set_adr_registration(message: types.Message, state:FSMContext):
     await message.answer(f'Вы ввели адрес: {message.text}')
@@ -85,32 +82,3 @@ async def set_adr_registration(message: types.Message, state:FSMContext):
     list_admins = await db.get_admins()
     for item in list_admins:
         await message.bot.send_message(item[0], text=f"Новая заявка на регистрацию!")
-
-
-# Функция для завершения процесса регистрации
-# на данном этапе ролучаем адрес от пользователя и проверяем адрес на существование
-# Далее отпрает уведомление администраторам для подтверждения пользователя
-"""@router_registration.message(ClassStateRegestration.adr_regestration)
-async def set_adr_registration(message: types.Message, state:FSMContext):
-    geolocator = Nominatim(user_agent="coordinateconverter")
-    if message.location:
-        adress = f"{message.location.latitude}, {message.location.longitude}"
-        location = geolocator.geocode(adress, addressdetails=True, language="ru")
-    else:
-        location = geolocator.geocode(message.text, addressdetails=True, language="ru")
-
-    if location:
-        address_parts = location.address.split(', ')
-        reversed_address = ', '.join(reversed(address_parts))
-        await db.upd_data_in_db("user_address",reversed_address, message.from_user.id)
-        await db.upd_data_in_db("user_status", 0, message.from_user.id)
-    else:
-        await message.answer("Местоположение не найдено. Введите еще раз")
-        await ClassState.number_regestration()
-
-    await message.answer("Ваша заявка проверяется, ожидайте подтверждение администратора", reply_markup=kb.del_keyboard())
-    await state.clear()
-
-    list_admins = await db.get_admins()
-    for item in list_admins:
-        await message.bot.send_message(item[0], text=f"Новая заявка на регистрацию!")"""

@@ -98,4 +98,3 @@ def keyboard_cancel()->types.ReplyKeyboardMarkup:
 
 def del_keyboard()->types.ReplyKeyboardRemove:
     return types.ReplyKeyboardRemove()
-

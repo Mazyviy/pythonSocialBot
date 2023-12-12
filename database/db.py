@@ -7,7 +7,7 @@ from config import values_bot
 # Подключается к БД (или создает ее) с двумя таблицами users и tasks.
 async def db_start():
     global db, cursor
-    db = sqlite3.connect('database/database1.db', check_same_thread=False)
+    db = sqlite3.connect('database/database.db', check_same_thread=False)
     cursor = db.cursor()
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -67,7 +67,7 @@ async def get_user_existence_in_db(user_id):
 # user_role (роль пользователя) и user_name (имя пользователя).
 # Эти данные предоставляют информацию о пользователях, которые ожидают регистрации.
 async def get_applications_for_registration():
-    cursor.execute("SELECT user_id, user_role, user_name  FROM users WHERE user_status=0 ORDER BY id DESC")
+    cursor.execute("SELECT id, user_role, user_name, user_id, user_number, user_address  FROM users WHERE user_status=0 ORDER BY id DESC")
     return cursor.fetchall()
 
 # Эта функция изменяет статус пользователя в базе данных на указанное значение.
@@ -86,7 +86,7 @@ async def del_user(user_id):
 
 # функция возвращает список пользователей из базы данных, удовлетворяющих указанным ролям и статусам.
 async def get_list_users(user_role, user_status):
-    cursor.execute(f"SELECT user_id, user_role,user_name FROM users WHERE user_role=? AND user_status=?", (user_role, user_status,))
+    cursor.execute(f"SELECT user_id, user_role,user_name, user_number, id FROM users WHERE user_role=? AND user_status=?", (user_role, user_status,))
     return cursor.fetchall()
 
 # После выполнения запроса, функция возвращает список кортежей c столбцами

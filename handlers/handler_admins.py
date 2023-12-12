@@ -6,6 +6,7 @@ from keyboards import keyboards as kb
 from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from states.states_admin import ClassStateStatistics, ClassStateTaskClose
+from config import values_bot
 import datetime
 
 router_admin = Router()
@@ -27,14 +28,14 @@ async def a_task_registration(message:types.Message):
             for item in results:
                 kb_item = [
                     types.InlineKeyboardButton(text="✅ Принять",
-                                         callback_data=CbDataRegestration(action='add', user_id=str(item[0]),
+                                         callback_data=CbDataRegestration(action='add', user_id=str(item[3]),
                                                                           user_role=item[1]).pack()),
                     types.InlineKeyboardButton(text="❌ Отклонить",
-                                         callback_data=CbDataRegestration(action='del', user_id=str(item[0]),
+                                         callback_data=CbDataRegestration(action='del', user_id=str(item[3]),
                                                                           user_role=item[1]).pack())
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ id: {item[0]} Роль: {item[1]}\nИмя: {item[2]}", reply_markup=keyboard)
+                await message.answer(f"↘️ №: {item[0]} Роль: {values_bot.USER_ROLE[item[1]]}\nФИО: {item[2]} ({item[3]})\nНомер: {item[4]}\nАдрес: {item[5]}", reply_markup=keyboard)
         else:
             await message.answer("Заявок на рассмотрение нет")
 
@@ -42,17 +43,15 @@ async def a_task_registration(message:types.Message):
 # Если действие - "add" (добавить), то пользователь одобряется, и ему отправляется уведомление.
 # Если действие - "del" (удалить), то заявка пользователя отклоняется, и ему также отправляется уведомление.
 @router_admin.callback_query(CbDataRegestration.filter())
-async def button_press_regestration(call: types.CallbackQuery, callback_data: dict):
+async def button_press_registration(call: types.CallbackQuery, callback_data: dict):
     action = callback_data.action
     user_id = callback_data.user_id
     user_role = callback_data.user_role
-    print(action, user_id, user_role)
 
     if action == "add":
         await db.upd_user_status(status=1, user_id=user_id)
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        await call.bot.send_message(user_id, text="Ваша заявка на регистрацию одобрена")
-        await call.bot.send_message(user_id, text="""Нажмите чтобы открыть меню <a>/menu</a>""")
+        await call.bot.send_message(user_id, text="""Ваша заявка на регистрацию одобрена\nНажмите чтобы открыть меню <a>/menu</a>""")
 
     elif action == "del":
         await db.del_user(user_id)
@@ -66,11 +65,11 @@ async def button_press_regestration(call: types.CallbackQuery, callback_data: di
 async def a_list_v(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist[5] == "admin" and exist[6] == 1:
-        list_users = await db.get_list_users("volunteer",1)
+        list_users = await db.get_list_users("volunteer",1) #user_id, user_role,user_name, user_number, id
         if list_users:
             array_text = ''
             for item in list_users:
-                array_text_item = f"🏃🏻 {item[1]} - {item[2]} ({item[0]})\n"
+                array_text_item = f"🏃🏻 № {item[4]} - {item[2]} (т. {item[3]})\n"
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -92,7 +91,7 @@ async def a_list_a(message:types.Message):
         if list_users:
             array_text = ''
             for item in list_users:
-                array_text_item = f"👑 {item[1]} - {item[2]} ({item[0]})\n"
+                array_text_item = f"👑 № {item[4]} - {item[2]} (т. {item[3]})\n"
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -114,7 +113,7 @@ async def a_list_c(message:types.Message):
         if list_users:
             array_text = ''
             for item in list_users:
-                array_text_item = f"🛌🏿 {item[1]} - {item[2]} ({item[0]})\n"
+                array_text_item = f"🛌🏿 № {item[4]} - {item[2]} (т. {item[3]})\n"
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
