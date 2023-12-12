@@ -25,7 +25,7 @@ class CbDataDelTask(CallbackData, prefix="id2"):
 @router_client.message(F.text == "Мои заявки")
 async def c_my_request(message: types.Message):
    exist=await db.get_user_existence_in_db(message.from_user.id)
-   if exist[5] == "client" and exist[6] == 1:
+   if exist is not None and exist[5] == "client" and exist[6] == 1:
         list_tasks = await db.get_list_tasks_client(message.from_user.id)
         if list_tasks:
             for item in list_tasks:
@@ -36,14 +36,14 @@ async def c_my_request(message: types.Message):
 
                 if item[5]:
                     user_name = await db.get_user_name(item[5])
+                    user_number = await db.get_user_nunmber(item[5])
                     await message.answer(
-                        f"↘️ Номер: {item[0]} Задача: {item[1]}\nПодробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\nДата создания: {item[4]}\nВолонтер: {user_name[0]}",
+                        f"↘️ №: {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\n🏃🏻Волонтер: {user_name[0]} (т. {user_number}\nДата создания: {item[4]})",
                         reply_markup=keyboard)
                 else:
                     await message.answer(
-                        f"↘️ Номер: {item[0]} Задача: {item[1]}\nПодробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}",
+                        f"↘️ №: {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\nДата создания: {item[4]}",
                         reply_markup=keyboard)
-
         else:
             await message.answer("Созданных просьб нет")
 
@@ -61,6 +61,7 @@ async def button_del_task(call: types.CallbackQuery, callback_data: dict):
         user_perform = result_db[1]
         if state_task == "work":
             await call.bot.send_message(chat_id=user_perform, text=f"Задача №: {task_id} - {task}, удалена клиентом!")
+
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await db.del_task(task_id)
         await call.answer(text=f"Вы удалили задачу {task} ", show_alert=True)
@@ -69,7 +70,7 @@ async def button_del_task(call: types.CallbackQuery, callback_data: dict):
 @router_client.message(F.text == values_bot.TASK['doctor'])
 async def c_doctor(message: types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "client" and exist[6] == 1:
+    if exist is not None and exist[5] == "client" and exist[6] == 1:
         await message.answer("Напишите, что с вами случилось или на что жалуетесь", reply_markup=kb.keyboard_cancel())
         await state.set_state(ClassStateDoctor.health_complaint)
 
@@ -103,7 +104,7 @@ async def c_set_doctro(message: types.Message, state:FSMContext):
 @router_client.message(F.text == values_bot.TASK['products'])
 async def c_buy_products(message: types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "client" and exist[6] == 1:
+    if exist is not None and exist[5] == "client" and exist[6] == 1:
         await message.answer("Напишите список продуктов", reply_markup=kb.keyboard_cancel())
         await state.set_state(ClassStateTaskProducts.list_products)
 
@@ -124,7 +125,7 @@ async def b_set_list_products(message: types.Message, state:FSMContext):
     task_urgency_products = data.get('task_urgency_products')
     await db.add_task("Купить продукты", list_products,"create", task_urgency_products, message.from_user.id)
     await state.clear()
-    await message.answer("Ваше заявка зарегистрирована", reply_markup=kb.keyboard_menu_c())
+    await message.answer("Ваша заявка зарегистрирована", reply_markup=kb.keyboard_menu_c())
 
 # Эта функция обрабатывает сообщения с текстом "Купить лекарства" от клиента/заказчика,
 # проверяет его права доступа и, если они соответствуют,
@@ -132,7 +133,7 @@ async def b_set_list_products(message: types.Message, state:FSMContext):
 @router_client.message(F.text == values_bot.TASK['medicines'])
 async def c_buy_medicines(message: types.Message, state:FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "client" and exist[6] == 1:
+    if exist is not None and exist[5] == "client" and exist[6] == 1:
         await message.answer("Напишите список лекарств", reply_markup=kb.keyboard_cancel())
         await state.set_state(ClassStateTaskMedicines.list_medicines)
 
@@ -152,7 +153,7 @@ async def c_set_list_products(message: types.Message, state:FSMContext):
     task_urgency_medicines = data.get('task_urgency_medicines')
     await db.add_task("Купить лекарства",list_medicines,"create",task_urgency_medicines, message.from_user.id)
     await state.clear()
-    await message.answer("Ваше заявка зарегистрирована",reply_markup=kb.keyboard_menu_c())
+    await message.answer("Ваша заявка зарегистрирована",reply_markup=kb.keyboard_menu_c())
 
 # Эта функция обрабатывает сообщения с текстом "Социальное такси" от клиента/заказчика,
 # проверяет его права доступа и, если они соответствуют,
@@ -160,7 +161,7 @@ async def c_set_list_products(message: types.Message, state:FSMContext):
 @router_client.message(F.text == values_bot.TASK['taxi'])
 async def c_taxi(message: types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "client" and exist[6] == 1:
+    if exist is not None and exist[5] == "client" and exist[6] == 1:
         await message.answer("Напишите адрес отправления (город улица дом)",reply_markup=kb.keyboard_cancel())
         await state.set_state(ClassStateTaxi.first_adress_taxi)
 
@@ -190,7 +191,7 @@ async def b_taxi_finish(message: types.Message, state=FSMContext):
     task_urgency_taxi = data.get('task_urgency_taxi')
     adress = f"Такси от ({first_adress}) до ({second_adress})"
     await db.add_task("Социальное такси",adress,"create",task_urgency_taxi, message.from_user.id)
-    await message.answer("Ваше заявка зарегистрирована", reply_markup=kb.keyboard_menu_c())
+    await message.answer("Ваша заявка зарегистрирована", reply_markup=kb.keyboard_menu_c())
     await state.clear()
 
 # просит подтвердить клиента, что волонтер выполнил заявку
@@ -204,7 +205,7 @@ async def c_task_assurance(call: types.CallbackQuery, callback_data: dict):
     if answer == "yes":
         await db.upd_state_task(id,column_name="date_task_close", state_task="close")
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        await call.bot.send_message(user_perform, text=f"Вы молодец. Задача id: {id} - {task[0]} выполнена")
+        await call.bot.send_message(user_perform, text=f"🥳 Вы молодец. Задача № {id} - {task[0]} выполнена")
     elif answer == "no":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        await call.bot.send_message(user_perform, text=f"Вы не выполнили задачу. Задача id: {id} - {task[0]}")
+        await call.bot.send_message(user_perform, text=f"🙁 Вы не выполнили задачу № {id} - {task[0]}")

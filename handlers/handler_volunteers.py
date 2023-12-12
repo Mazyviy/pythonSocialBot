@@ -33,18 +33,19 @@ class CbDataFreeTask(CallbackData, prefix="id3"):
 @router_volunteer.message(F.text == "Принятые заявки")
 async def v_accepted_tasks(message: types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "volunteer" and exist[6] == 1:
+    if exist is not None and exist[5] == "volunteer" and exist[6] == 1:
         list_tasks = await db.get_list_accepted_tasks_volunteer(message.from_user.id)
         if list_tasks:
             for item in list_tasks:
                 user_adr = await db.get_user_adr(item[3])
                 user_name = await db.get_user_name(item[3])
+                user_number = await db.get_user_nunmber(item[3])
                 kb_item = [
                     types.InlineKeyboardButton(text="Выполнил", callback_data=CbDataWorkTask(action='perform',task=item[1], user_id=str(item[3]), task_id=int(item[0])).pack()),
                     types.InlineKeyboardButton(text="Отказаться", callback_data=CbDataWorkTask(action='refuse',task=item[1],user_id=str(item[3]), task_id=int(item[0])).pack())
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ Номер: {item[0]} Задача: {item[1]}\nПодробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[4]}']}\n🌍Адрес: {user_adr[0]}\nЗаказчик: {user_name[0]}\nДата создания: {item[5]}\nВзята в работу: {item[6]}\n", reply_markup=keyboard)
+                await message.answer(f"↘️ № {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[4]}']}\n🌍Адрес: {user_adr[0]}\n🛏️Заказчик: {user_name[0]} (т. {user_number[0]})\nДата создания: {item[5]}\nВзята в работу: {item[6]}\n", reply_markup=keyboard)
         else:
             await message.answer("Принятых заявок нет")
 
@@ -57,7 +58,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
     action = callback_data.action
     task_id = callback_data.task_id
     user_id = callback_data.user_id
-    task=str(await db.get_task_id(task_id))
+    task=await db.get_task_id(task_id)
     if action == "perform":
         state = await db.get_task_state(task_id=task_id)
         if state is not None and state[0]:
@@ -67,7 +68,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_iteam])
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.bot.send_message(user_id, f"id:{task_id} Задача: {task}\nВолонтер: {call.from_user.id}\nВолонтер сделал просьбу?", reply_markup=keyboard)
+            await call.bot.send_message(user_id, f"↘️ № {task_id}. Задача: {task[0]}\n🏃🏻Волонтер: {call.from_user.id}\nВолонтер сделал просьбу?", reply_markup=keyboard)
             await call.message.answer("Как только клиент подтвердит выполнение задачи, вам придет уведомление")
         else:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
@@ -78,7 +79,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
         if state is not None and state[0]:
             await db.upd_state_task_v(task_id, column_name="date_task_work",state_task="create")
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.answer(text=f"Вы отказались от задачи '{task}' ", show_alert=True)
+            await call.answer(text=f"Вы отказались от задачи № {task_id} - {task[0]}", show_alert=True)
         else:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.answer(text=f"Данной заявки уже не существует", show_alert=True)
@@ -89,7 +90,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
 @router_volunteer.message(F.text == "Свободные заявки")
 async def free_tasks(message: types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "volunteer" and exist[6] == 1:
+    if exist is not None and exist[5] == "volunteer" and exist[6] == 1:
         list_tasks = await db.get_list_tasks("create")
 
         if list_tasks:
@@ -101,7 +102,7 @@ async def free_tasks(message: types.Message):
                                          callback_data=CbDataFreeTask(action='add', task_id=item[0],user_id=str(item[3]), user_perform=str(message.from_user.id), task=str(item[1])).pack()),
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ Номер: {item[0]} Задача: {item[1]}\nПодробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[5]}']}\n🌍Адрес: {user_adr[0]}\n🛌🏿Заказчик: {user_name[0]}\nДата создания: {item[6]}\n", reply_markup=keyboard)
+                await message.answer(f"↘️ № {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[5]}']}\n🌍Адрес: {user_adr[0]}\n🛏️Заказчик: {user_name[0]}\nДата создания: {item[6]}\n", reply_markup=keyboard)
         else:
             await message.answer("Задач нет")
 
@@ -118,8 +119,8 @@ async def button_press_free_task(call: types.CallbackQuery, callback_data: dict)
         if state is not None and state[0]:
             await db.upd_add_task_volunteer(task_id, user_perform)
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.answer(text=f"Задача '{task}' добавлена", show_alert=True)
-            await call.bot.send_message(user_id, f"Ваша заявка № {task_id} {task} была выбрана волонтером!")
+            await call.answer(text=f"Задача № {task_id} - {task} добавлена", show_alert=True)
+            await call.bot.send_message(user_id, f"Ваша заявка № {task_id} - {task} была выбрана волонтером!")
         else:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.answer(text=f"Данной заявки уже не существует", show_alert=True)

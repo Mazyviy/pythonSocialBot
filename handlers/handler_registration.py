@@ -72,10 +72,8 @@ async def set_number_registration(message: types.Message, state:FSMContext):
 # Далее отпрает уведомление администраторам для подтверждения пользователя
 @router_registration.message(ClassStateRegestration.adr_regestration)
 async def set_adr_registration(message: types.Message, state:FSMContext):
-    await message.answer(f'Вы ввели адрес: {message.text}')
     await db.upd_data_in_db("user_address",message.text, message.from_user.id)
     await db.upd_data_in_db("user_status", 0, message.from_user.id)
-
     await message.answer("Ваша заявка проверяется, ожидайте подтверждение администратора", reply_markup=kb.del_keyboard())
     await state.clear()
 

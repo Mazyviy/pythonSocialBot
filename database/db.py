@@ -188,6 +188,11 @@ async def get_user_name(user_id):
     cursor.execute(f"SELECT user_name FROM users WHERE user_id=?", (user_id,))
     return cursor.fetchone()
 
+# функция возвращает номер пользователя по его идентификатору.
+async def get_user_nunmber(user_id):
+    cursor.execute(f"SELECT user_number FROM users WHERE user_id=?", (user_id,))
+    return cursor.fetchone()
+
 # функция для обновления состояния и даты закрытия задачи.
 async def upd_state_task(task_id, column_name,state_task):
     current_datetime = datetime.now().__format__("%Y-%m-%d %H:%M:%S")

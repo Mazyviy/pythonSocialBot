@@ -10,6 +10,11 @@ USER_ROLE = {
     'client': 'клиент',
     'volunteer': 'волонтер'
 }
+USER_ROLE_ICON = {
+    'admin': '👑',
+    'client': '🛏️',
+    'volunteer': '🏃🏻'
+}
 
 USER_ROLE_R = {
     'администратор': 'admin',

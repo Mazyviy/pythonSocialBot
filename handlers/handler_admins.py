@@ -22,7 +22,7 @@ class CbDataRegestration(CallbackData, prefix="id1158"):
 @router_admin.message(F.text == "Заявки на регистрацию")
 async def a_task_registration(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         results = await db.get_applications_for_registration()
         if results:
             for item in results:
@@ -35,7 +35,7 @@ async def a_task_registration(message:types.Message):
                                                                           user_role=item[1]).pack())
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ №: {item[0]} Роль: {values_bot.USER_ROLE[item[1]]}\nФИО: {item[2]} ({item[3]})\nНомер: {item[4]}\nАдрес: {item[5]}", reply_markup=keyboard)
+                await message.answer(f"↘️ №: {item[0]}. Роль: {values_bot.USER_ROLE_ICON[item[1]]} {values_bot.USER_ROLE[item[1]]}\n🎫ФИО: {item[2]} ({item[3]})\n📞Номер: {item[4]}\n🌎Адрес: {item[5]}", reply_markup=keyboard)
         else:
             await message.answer("Заявок на рассмотрение нет")
 
@@ -52,7 +52,6 @@ async def button_press_registration(call: types.CallbackQuery, callback_data: di
         await db.upd_user_status(status=1, user_id=user_id)
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.bot.send_message(user_id, text="""Ваша заявка на регистрацию одобрена\nНажмите чтобы открыть меню <a>/menu</a>""")
-
     elif action == "del":
         await db.del_user(user_id)
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
@@ -64,7 +63,7 @@ async def button_press_registration(call: types.CallbackQuery, callback_data: di
 @router_admin.message(F.text == "Список волонтеров")
 async def a_list_v(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_users = await db.get_list_users("volunteer",1) #user_id, user_role,user_name, user_number, id
         if list_users:
             array_text = ''
@@ -86,7 +85,7 @@ async def a_list_v(message:types.Message):
 @router_admin.message(F.text == "Список администраторов")
 async def a_list_a(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_users = await db.get_list_users("admin", 1)
         if list_users:
             array_text = ''
@@ -108,12 +107,12 @@ async def a_list_a(message:types.Message):
 @router_admin.message(F.text == "Список клиентов")
 async def a_list_c(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_users = await db.get_list_users("client",1)
         if list_users:
             array_text = ''
             for item in list_users:
-                array_text_item = f"🛌🏿 № {item[4]} - {item[2]} (т. {item[3]})\n"
+                array_text_item = f"🛏️ № {item[4]} - {item[2]} (т. {item[3]})\n"
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -130,14 +129,14 @@ async def a_list_c(message:types.Message):
 @router_admin.message(F.text == "Список свободных задач")
 async def a_list_free_task(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_tasks = await db.get_list_tasks("create")
         if list_tasks:
             array_text=""
             for item in list_tasks:
                 user_adr = await db.get_user_adr(item[3])
-                user_name = await db.get_user_name(item[3])#####################
-                array_text_item = (f"↘️ Номер: {str(item[0])} Задача: {item[1]}\nПодробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {item[5]}\n🛌🏿Заказчик: {user_name[0]} ({item[3]})\nДата создания: {item[6]}\n\n")
+                user_name = await db.get_user_name(item[3])
+                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name[0]} ({item[3]})\nДата создания: {item[6]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -154,7 +153,7 @@ async def a_list_free_task(message:types.Message):
 @router_admin.message(F.text == "Список задач в работе")
 async def a_worked_task(message:types.Message):
    exist = await db.get_user_existence_in_db(message.from_user.id)
-   if exist[5] == "admin" and exist[6] == 1:
+   if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_tasks = await db.get_list_tasks("work")
         if list_tasks:
             array_text = ""
@@ -162,7 +161,7 @@ async def a_worked_task(message:types.Message):
                 user_adr = await db.get_user_adr(item[3])
                 user_name_c = await db.get_user_name(item[3])
                 user_name_v = await db.get_user_name(item[4])
-                array_text_item =(f"↘️ Номер: {str(item[0])} Задача: {item[1]}\nПодробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n{item}\n⏳Срочность: {item[5]}\n🛌🏿Заказчик: {user_name_c[0]} ({item[3]})\n🏃🏻Выполняет: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\n\n")
+                array_text_item =(f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n{item}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name_c[0]} ({item[3]})\n🏃🏻Выполняет: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -179,14 +178,14 @@ async def a_worked_task(message:types.Message):
 @router_admin.message(F.text == "Список выполненных задач")
 async def a_completed_task(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         await state.set_state(state=ClassStateTaskClose.submenu)
         await message.answer('выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
 
 @router_admin.message(F.text.in_({'за все время', 'за год', 'за месяц', 'за день'}), ClassStateTaskClose.submenu)
 async def a_completed_task_date(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         list_tasks = await db.get_list_tasks("close",date_value= message.text)
         if list_tasks:
             array_text = ""
@@ -194,7 +193,7 @@ async def a_completed_task_date(message:types.Message, state: FSMContext):
                 user_adr = await db.get_user_adr(item[3])
                 user_name_c = await db.get_user_name(item[3])
                 user_name_v = await db.get_user_name(item[4])
-                array_text_item = (f"↘️ Номер: {str(item[0])} Задача: {item[1]}\nПодробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {item[5]}\n🛌🏿Заказчик: {user_name_c[0]} ({item[3]})\n🏃🏻Выполнил: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\nЗакрыта: {item[8]}\n\n")
+                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name_c[0]} ({item[3]})\n🏃🏻Выполнил: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\nЗакрыта: {item[8]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -211,7 +210,7 @@ async def a_completed_task_date(message:types.Message, state: FSMContext):
 @router_admin.message(F.text == "Общая статистика")
 async def a_total_statistics(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         await state.set_state(state=ClassStateStatistics.submenu)
         await message.answer('выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
 
@@ -221,7 +220,7 @@ async def a_total_statistics(message:types.Message, state: FSMContext):
 @router_admin.message(F.text.in_({'за все время', 'за год', 'за месяц', 'за день'}), ClassStateStatistics.submenu)
 async def a_statistics(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         count_v = []
         count_b = []
         count_a = []
@@ -290,6 +289,6 @@ async def a_statistics(message:types.Message, state: FSMContext):
 @router_admin.message(F.text == 'главное меню')
 async def a_main_menu(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
-    if exist[5] == "admin" and exist[6] == 1:
+    if exist is not None and exist[5] == "admin" and exist[6] == 1:
         await message.answer("Выберите пункт меню", reply_markup=kb.keyboard_menu_a())
         await state.clear()
