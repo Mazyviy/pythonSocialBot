@@ -38,7 +38,7 @@ async def c_my_request(message: types.Message):
                     user_name = await db.get_user_name(item[5])
                     user_number = await db.get_user_nunmber(item[5])
                     await message.answer(
-                        f"↘️ №: {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\n🏃🏻Волонтер: {user_name[0]} (т. {user_number}\nДата создания: {item[4]})",
+                        f"↘️ №: {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\n🏃🏻Волонтер: {user_name[0]} (т. {user_number[0]}\nДата создания: {item[4]}",
                         reply_markup=keyboard)
                 else:
                     await message.answer(

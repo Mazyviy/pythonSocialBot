@@ -21,10 +21,8 @@ async def main():
     await db.db_start()
     # Создание объекта бота с использованием токена из конфигурации
     bot = Bot(token=config.bot_token.get_secret_value(), parse_mode="HTML")
-
     # Запуск цикла проверки задач в отдельном потоке
     asyncio.get_event_loop().create_task(utils.check_db.task_checker(bot))
-
     # Создание хранилища данных
     storage = MemoryStorage()
     # Создание диспетчера для обработки команд и сообщений бота
