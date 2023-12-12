@@ -1,0 +1,7 @@
+/.idea/
+/logs/
+/Scripts/
+/Lib/
+/config/.env
+/database/database.db
+123.py
