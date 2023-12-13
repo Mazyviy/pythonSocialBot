@@ -1,34 +1,45 @@
 from aiogram import Router, types
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.state import State, StatesGroup
 from aiogram.types import Message
-from geopy.geocoders import Nominatim
 from datetime import datetime
 from database import db
 from keyboards import keyboards as kb
 from states.states_registration import ClassStateRegistration
 from config import values_bot
-from utils.check_db import validate_date
+from datetime import datetime
+import re
 
 router_registration = Router()
 
 # Функция для начала процесса регистрации
 async def get_menu_registration(message: types.Message, state: FSMContext):
     await message.answer(text="Выберите свою роль", reply_markup=kb.keyboard_start_registration())
-    await state.set_state(state=ClassStateRegistration.role_registration)
+    await state.set_state(ClassStateRegistration.role_registration)
 
 # Функция для продолжения процесса регистрации
 # на данном этапе ролучаем роль от пользователя и просим ввести ФИО
 @router_registration.message(ClassStateRegistration.role_registration)
 async def set_role_registration(message: types.Message, state:FSMContext):
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите вашу роль, а не команду.")
+        return
+
+    elif message.text not in values_bot.USER_ROLE_R:
+        await message.reply("Это не допустимая роль. Пожалуйста, выберите роль из предложенных.")
+        return
+
     await db.set_user_in_db(message.from_user.id, values_bot.USER_ROLE_R[f'{message.text}'])
-    await message.answer(text="Введите свое ФИО",reply_markup=kb.del_keyboard())
+    await message.answer(text="Введите свое ФИО", reply_markup=kb.del_keyboard())
     await state.set_state(ClassStateRegistration.name_registration)
 
 # Функция для продолжения процесса регистрации
 # на данном этапе ролучаем ФИО от пользователя и просим ввести дату рождения
 @router_registration.message(ClassStateRegistration.name_registration)
 async def set_name_registration(message: types.Message, state:FSMContext):
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите ваше имя, а не команду.")
+        return
+
     await db.upd_data_in_db(column_name="user_name",
                             data=message.text,
                             user_id=message.from_user.id)
@@ -39,14 +50,19 @@ async def set_name_registration(message: types.Message, state:FSMContext):
 # на данном этапе ролучаем дату рождения от пользователя и запрашиваем номер телефона
 @router_registration.message(ClassStateRegistration.date_registration)
 async def set_date_registration(message: types.Message, state:FSMContext):
-    is_valid, date_obj = validate_date(message.text)
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите дату, а не команду.")
+        return
+
+    is_valid, date_obj = await validate_date(message.text)
+
     if is_valid:
         await db.upd_data_in_db(column_name="user_date",
                                 data=message.text,
                                 user_id=message.from_user.id)
     else:
         await message.answer("Некорректный формат даты. Введите еще раз")
-        await ClassStateRegistration.name_registration()
+        return await state.set_state(ClassStateRegistration.date_registration)
 
     await message.answer(text="Отлично. Укажите ваш номер телефона (нажмите на кнопку ниже)", reply_markup=kb.keyboard_request_contact())
     await state.set_state(ClassStateRegistration.number_registration)
@@ -65,25 +81,56 @@ async def set_number_registration(message: types.Message, state:FSMContext):
             await state.set_state(ClassStateRegistration.adr_registration)
         else:
             await message.reply("Пожалуйста, предоставьте свой собственный номер.")
-            await ClassStateRegistration.date_registration()
+            return await state.set_state(ClassStateRegistration.date_registration)
     else:
         await message.answer("Предоставьте свой номер. Нажмите на кнопку ниже!")
-        await ClassStateRegistration.date_registration()
+        return await state.set_state(ClassStateRegistration.date_registration)
 
 # Функция для завершения процесса регистрации
 # на данном этапе ролучаем адрес от пользователя и проверяем адрес на существование
 # Далее отпрает уведомление администраторам для подтверждения пользователя
 @router_registration.message(ClassStateRegistration.adr_registration)
 async def set_adr_registration(message: types.Message, state:FSMContext):
-    await db.upd_data_in_db(column_name="user_address",
-                            data=message.text,
-                            user_id=message.from_user.id)
-    await db.upd_data_in_db(column_name="user_status",
-                            data=0,
-                            user_id=message.from_user.id)
-    await message.answer(text="Ваша заявка проверяется, ожидайте подтверждение администратора", reply_markup=kb.del_keyboard())
-    await state.clear()
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите дату, а не команду.")
+        return
 
-    list_admins = await db.get_admins()
-    for item in list_admins:
-        await message.bot.send_message(item[0], text=f"Новая заявка на регистрацию!")
+    address_format = await check_address_format(message.text)
+    if address_format:
+        await db.upd_data_in_db(column_name="user_address",
+                                data=message.text,
+                                user_id=message.from_user.id)
+        await db.upd_data_in_db(column_name="user_status",
+                                data=0,
+                                user_id=message.from_user.id)
+        await message.answer(text="Ваша заявка проверяется, ожидайте подтверждение администратора",
+                             reply_markup=kb.del_keyboard())
+        await state.clear()
+
+        list_admins = await db.get_admins()
+        for item in list_admins:
+            await message.bot.send_message(item[0], text=f"Новая заявка на регистрацию!")
+
+    else:
+        await message.answer("Вы ввели неккоректный адрес, введите еще раз.")
+        return await state.set_state(ClassStateRegistration.adr_registration)
+
+async def check_address_format(address):
+    pattern = r'^[А-Яа-яЁё\s]+,\s*[\d\s]?[А-Яа-яЁё\s]+\s*\d*,\s*\d+\s*[а-яА-Я]?\s*,\s*\d+\s*[а-яА-Я]?$'
+    if re.match(pattern, address):
+        return True
+    else:
+        return False
+
+# Функция для проверки корректности введеной даты рождения от пользователя
+async def validate_date(date_string):
+    try:
+        date_obj = datetime.strptime(date_string, '%d.%m.%Y')
+        current_date = datetime.now()
+
+        if date_obj < current_date:
+            return True, date_obj
+        else:
+            return False, None
+    except ValueError:
+        return False, None

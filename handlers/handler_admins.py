@@ -7,7 +7,6 @@ from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from states.states_admin import ClassStateStatistics, ClassStateTaskClose
 from config import values_bot
-import datetime
 
 router_admin = Router()
 

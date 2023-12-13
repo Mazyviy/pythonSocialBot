@@ -1,20 +1,6 @@
 from database import db
-import time, datetime
-import asyncio
-from config import values_bot
-
-# Функция для проверки корректности введеной даты рождения от пользователя
-def validate_date(date_string):
-    try:
-        date_obj = datetime.strptime(date_string, '%d.%m.%Y')
-        current_date = datetime.now()
-
-        if date_obj < current_date:
-            return True, date_obj
-        else:
-            return False, None
-    except ValueError:
-        return False, None
+import datetime
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # Функция, которая будет запускаться периодически и отправлять сообщения о задачах
 # с близким к концу временем выполнения у волонтеров
@@ -91,11 +77,12 @@ async def send_message_all_volunteer_doctor(bot):
                     await bot.send_message(chat_id=item_volunteer[0], text=f"❗ Появилась срочная задача № {item[0]} - {item[1]}."
                                                                            f"\nОсталось {out}")
 
+scheduler = AsyncIOScheduler()
 # Запускаем цикл проверки задач
-async def task_checker(bot):
-    while True:
-        await check_tasks_for_deadline_work(bot)
-        await check_tasks_for_deadline_create(bot)
-        await send_message_all_volunteer_doctor(bot)
-        # Пауза между проверками задач (1 минута)
-        await asyncio.sleep(60)
+def start_check(bot):
+    scheduler.add_job(check_tasks_for_deadline_work, 'cron', minute='*', args=[bot])
+    scheduler.add_job(check_tasks_for_deadline_create, 'cron', minute='*', args=[bot])
+    scheduler.add_job(send_message_all_volunteer_doctor, 'cron', minute='*', args=[bot])
+    scheduler.start()
+def stop_check():
+    scheduler.shutdown()

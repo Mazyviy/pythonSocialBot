@@ -14,17 +14,15 @@ router_base = Router()
 @router_base.message(Command('start'))
 async def process_start_command(message: types.Message, state: FSMContext):
     bot_info = await message.bot.get_me()
-    bot_name = bot_info.first_name
-    await message.answer(f"Добро пожаловать {message.from_user.full_name} в <b>{bot_name}</b>! 🤝\n"
+    await message.answer(f"Добро пожаловать {message.from_user.full_name} в <b>{bot_info.first_name}</b>! 🤝\n"
                          "Здесь находятся люди, которым требуется помощь, а также волонтеры, готовые им помочь.\n"
                          "Мы с радостью приветствуем вас в нашем сообществе, где сотрудничество и взаимопомощь являются ключевыми принципами.\n"
                          "Если у вас возникли вопросы или вам требуется помощь, не стесняйтесь обращаться к нам.\n"
-                         "Начнем! 💪\n"
-                         "ВНИМАНИЕ!!! Этот проект в разработке!!!")
+                         "Начнем! 💪\n")
 
     result = await db.get_user_existence_in_db(message.from_user.id)
-    if result is None:
-        await get_menu_registration(message, state)
+    if result is None or None in result:
+        await get_menu_registration(message,state)
     elif result[6]==0:
         await message.answer(f"Вы уже прошли регистрацию как {result[5]} {result[1]}\n"
                              "Но ваша заявка еще неодобрена!")

@@ -1,5 +1,5 @@
 from aiogram import types
-from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardMarkup
 from config import values_bot
 
 # клавиатура клиента

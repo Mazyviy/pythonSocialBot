@@ -1,5 +1,4 @@
 from datetime import datetime
-import aiogram.utils.magic_filter
 import aiosqlite
 from config import values_bot
 
@@ -278,14 +277,14 @@ async def set_user_in_db(user_id,user_role):
 # Затем она выполняет SQL-запрос для обновления значения в указанном столбце ("users") на новое значение (data)
 # для пользователя с указанным идентификатором (user_id).
 async def upd_data_in_db(column_name, data, user_id):
-    query = "UPDATE users SET {column_name}=? WHERE user_id=?"
+    query = f"UPDATE users SET {column_name}=? WHERE user_id=?"
     await db.execute(query, (data,user_id,))
     await db.commit()
 
 # выводит список администраторов со статусом 1 (активные)
 async def get_admins():
     query = ("SELECT user_id from users WHERE user_role='admin' AND user_status=1")
-    async with db.execute(query, (user_id,)) as cursor:
+    async with db.execute(query) as cursor:
         return await cursor.fetchall()
 
 # Функция `get_task_id` выполняет запрос к базе данных для получения задачи по её идентификатору.

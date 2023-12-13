@@ -1,8 +1,6 @@
 from aiogram import Router, F, types
 from aiogram.types import Message
-from typing import Optional
 from aiogram.filters.callback_data import CallbackData
-from datetime import datetime
 from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from database import db
 from keyboards import keyboards as kb

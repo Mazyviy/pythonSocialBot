@@ -2,8 +2,6 @@
 import asyncio
 import logging
 from logging.handlers import TimedRotatingFileHandler
-
-import handlers.handler_tests
 import utils.check_db
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -14,8 +12,8 @@ from handlers.handler_registration import router_registration
 from handlers.handler_volunteers import router_volunteer
 from handlers.handler_clients import router_client
 from handlers.handler_admins import router_admin
-from handlers.handler_tests import router_test
 from utils.commands import set_commands
+from handlers.handler_tests import router_test
 
 async def main():
     # Запуск базы данных
@@ -23,7 +21,7 @@ async def main():
     # Создание объекта бота с использованием токена из конфигурации
     bot = Bot(token=config.bot_token.get_secret_value(), parse_mode="HTML")
     # Запуск цикла проверки задач в отдельном потоке
-    asyncio.get_event_loop().create_task(utils.check_db.task_checker(bot))
+    utils.check_db.start_check(bot)
     # Создание хранилища данных
     storage = MemoryStorage()
     # Создание диспетчера для обработки команд и сообщений бота
@@ -38,6 +36,7 @@ async def main():
         # Запуск получения обновлений от бота через лонг-поллинг
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally :
+        utils.check_db.stop_check()
         # Закрытие сессии бота
         await bot.session.close()
         # Закрытие соединения с базой данных
