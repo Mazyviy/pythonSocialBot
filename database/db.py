@@ -8,7 +8,7 @@ from config import values_bot
 async def connect_to_database():
     connection = await aiosqlite.connect(values_bot.DATABASE_NAME)
     return connection
-
+pip
 # создает таблицы users и tasks.
 async def db_start():
     global db
