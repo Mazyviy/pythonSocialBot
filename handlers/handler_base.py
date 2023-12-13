@@ -43,6 +43,12 @@ async def get_menu(message: types.Message):
     elif results[5] == "admin" and results[6] == 1:
         await message.answer(text="Выберите пункт меню", reply_markup=kb.keyboard_menu_a())
 
+@router_base.message(Command('support'))
+async def suport(message: types.Message):
+    await message.answer("Чтобы получить дополнительную информацию, "
+                         "обсудить вопросы с другими пользователями или найти решение для вашей проблемы, "
+                         "посетите наш официальный канал <a>https://t.me/+GySK1oVkNEQ5MmFi</a>")
+
 # Обработка всех сообщений пользователя, для которых не определен обработчик
 # Если пользователь авторизован, ему выдается меню,
 # если нет то выводится сообщение и переводит пользователя на регистрацию

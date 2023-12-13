@@ -15,6 +15,7 @@ from handlers.handler_volunteers import router_volunteer
 from handlers.handler_clients import router_client
 from handlers.handler_admins import router_admin
 from handlers.handler_tests import router_test
+from utils.commands import set_commands
 
 async def main():
     # Запуск базы данных
@@ -28,6 +29,7 @@ async def main():
     # Создание диспетчера для обработки команд и сообщений бота
     dp = Dispatcher(storage=storage)
     # Подключение роутеров для обработки различных типов сообщений
+    await set_commands(bot)
     dp.include_routers(router_registration, router_volunteer, router_client, router_admin, router_test, router_base)
 
     try:
