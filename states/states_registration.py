@@ -1,5 +1,4 @@
 from aiogram.fsm.state import StatesGroup, State
-
 class ClassStateRegistration(StatesGroup):
     role_registration = State()
     name_registration=State()

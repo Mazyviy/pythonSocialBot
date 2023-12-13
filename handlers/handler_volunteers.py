@@ -41,11 +41,24 @@ async def v_accepted_tasks(message: types.Message):
                 user_name = await db.get_user_name(item[3])
                 user_number = await db.get_user_nunmber(item[3])
                 kb_item = [
-                    types.InlineKeyboardButton(text="Выполнил", callback_data=CbDataWorkTask(action='perform',task=item[1], user_id=str(item[3]), task_id=int(item[0])).pack()),
-                    types.InlineKeyboardButton(text="Отказаться", callback_data=CbDataWorkTask(action='refuse',task=item[1],user_id=str(item[3]), task_id=int(item[0])).pack())
+                    types.InlineKeyboardButton(text="Выполнил", callback_data=CbDataWorkTask(action='perform',
+                                                                                             task=item[1],
+                                                                                             user_id=str(item[3]),
+                                                                                             task_id=int(item[0])).pack()),
+                    types.InlineKeyboardButton(text="Отказаться", callback_data=CbDataWorkTask(action='refuse',
+                                                                                               task=item[1],
+                                                                                               user_id=str(item[3]),
+                                                                                               task_id=int(item[0])).pack())
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ № {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[4]}']}\n🌍Адрес: {user_adr[0]}\n🛏️Заказчик: {user_name[0]} (т. {user_number[0]})\nДата создания: {item[5]}\nВзята в работу: {item[6]}\n", reply_markup=keyboard)
+                await message.answer(text=f"↘️ № {item[0]}. Задача: {item[1]}\n"
+                                     f"📋Подробности: {item[2]}\n"
+                                     f"⏳Срочность: {values_bot.URGENCY_TASK[f'{item[4]}']}\n"
+                                     f"🌍Адрес: {user_adr[0]}\n"
+                                     f"🛏️Заказчик: {user_name[0]} (т. {user_number[0]})\n"
+                                     f"Дата создания: {item[5]}\n"
+                                     f"Взята в работу: {item[6]}\n",
+                                     reply_markup=keyboard)
         else:
             await message.answer("Принятых заявок нет")
 
@@ -63,12 +76,21 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
         state = await db.get_task_state(task_id=task_id)
         if state is not None and state[0]:
             kb_iteam = [
-                InlineKeyboardButton(text="Да", callback_data=CbDataCompletedTask(answer='yes', id=int(task_id), user_perform=str(call.from_user.id)).pack()),
-                InlineKeyboardButton(text="Нет", callback_data=CbDataCompletedTask(answer='no', id=int(task_id), user_perform=str(call.from_user.id)).pack())
+                InlineKeyboardButton(text="Да", callback_data=CbDataCompletedTask(answer='yes',
+                                                                                  id=int(task_id),
+                                                                                  user_perform=str(call.from_user.id)).pack()),
+                InlineKeyboardButton(text="Нет", callback_data=CbDataCompletedTask(answer='no',
+                                                                                   id=int(task_id),
+                                                                                   user_perform=str(call.from_user.id)).pack())
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_iteam])
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.bot.send_message(user_id, f"↘️ № {task_id}. Задача: {task[0]}\n🏃🏻Волонтер: {call.from_user.id}\nВолонтер сделал просьбу?", reply_markup=keyboard)
+            await call.bot.send_message(user_id=user_id,
+                                        text=f"↘️ № {task_id}. Задача: {task[0]}\n"
+                                             f"🏃🏻Волонтер: {call.from_user.id}\n"
+                                             f"Волонтер сделал просьбу?",
+                                        reply_markup=keyboard
+                                        )
             await call.message.answer("Как только клиент подтвердит выполнение задачи, вам придет уведомление")
         else:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
@@ -99,10 +121,22 @@ async def free_tasks(message: types.Message):
                 user_name = await db.get_user_name(item[3])
                 kb_item = [
                     types.InlineKeyboardButton(text="Взять",
-                                         callback_data=CbDataFreeTask(action='add', task_id=item[0],user_id=str(item[3]), user_perform=str(message.from_user.id), task=str(item[1])).pack()),
+                                               callback_data=CbDataFreeTask(action='add',
+                                                                            task_id=item[0],
+                                                                            user_id=str(item[3]),
+                                                                            user_perform=str(message.from_user.id),
+                                                                            task=str(item[1])).pack()
+                                               ),
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ № {item[0]}. Задача: {item[1]}\n📋Подробности: {item[2]}\n⏳Срочность: {values_bot.URGENCY_TASK[f'{item[5]}']}\n🌍Адрес: {user_adr[0]}\n🛏️Заказчик: {user_name[0]}\nДата создания: {item[6]}\n", reply_markup=keyboard)
+                await message.answer(text=f"↘️ № {item[0]}. Задача: {item[1]}\n"
+                                     f"📋Подробности: {item[2]}\n"
+                                     f"⏳Срочность: {values_bot.URGENCY_TASK[f'{item[5]}']}\n"
+                                     f"🌍Адрес: {user_adr[0]}\n"
+                                     f"🛏️Заказчик: {user_name[0]}\n"
+                                     f"Дата создания: {item[6]}\n",
+                                     reply_markup=keyboard
+                                     )
         else:
             await message.answer("Задач нет")
 
@@ -120,7 +154,7 @@ async def button_press_free_task(call: types.CallbackQuery, callback_data: dict)
             await db.upd_add_task_volunteer(task_id, user_perform)
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.answer(text=f"Задача № {task_id} - {task} добавлена", show_alert=True)
-            await call.bot.send_message(user_id, f"Ваша заявка № {task_id} - {task} была выбрана волонтером!")
+            await call.bot.send_message(user_id, text=f"Ваша заявка № {task_id} - {task} была выбрана волонтером!")
         else:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.answer(text=f"Данной заявки уже не существует", show_alert=True)

@@ -2,6 +2,7 @@ from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from config import values_bot
 
+# клавиатура клиента
 def keyboard_menu_c()->types.ReplyKeyboardMarkup:
     kb_item_menu_c = [
         [
@@ -18,6 +19,7 @@ def keyboard_menu_c()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_menu_c, resize_keyboard=True)
 
+# клавиатура волонтера
 def keyboard_menu_v()->types.ReplyKeyboardMarkup:
     kb_item_menu_v = [
         [types.KeyboardButton(text="Принятые заявки")],
@@ -25,6 +27,7 @@ def keyboard_menu_v()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_menu_v, resize_keyboard=True)
 
+# клавиатура администратора
 def keyboard_menu_a()->types.ReplyKeyboardMarkup:
     kb_item_menu_a = [
         [
@@ -46,6 +49,7 @@ def keyboard_menu_a()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_menu_a, resize_keyboard=True)
 
+# подменю статистики
 def keyboard_submenu_statistics_a()->types.ReplyKeyboardMarkup:
     kb_item_menu = [
         [
@@ -62,6 +66,7 @@ def keyboard_submenu_statistics_a()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_menu, resize_keyboard=True)
 
+# клавиатура выбора роли
 def keyboard_start_registration()->types.ReplyKeyboardMarkup:
     kb_item_start_registration = [
         [types.KeyboardButton(text=values_bot.USER_ROLE['client'])],
@@ -70,18 +75,21 @@ def keyboard_start_registration()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_start_registration, resize_keyboard=True, one_time_keyboard=True)
 
+# кнопка number пользователя
 def keyboard_request_contact()->types.ReplyKeyboardMarkup:
     kb_item_request_contact = [
         [types.KeyboardButton(text="Предоставить контакт", request_contact=True)]
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_request_contact, resize_keyboard=True, one_time_keyboard=True)
 
+# кнока geolocation
 def keyboard_request_location()->types.ReplyKeyboardMarkup:
     kb_item_request_location = [
         [types.KeyboardButton(text="Предоставить адрес", request_location=True)],
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_request_location, resize_keyboard=True, one_time_keyboard=True)
 
+# клавиатура выбора срочности задачи
 def keyboard_urgency_task()->types.ReplyKeyboardMarkup:
     kb_item_urgency_task = [
         [types.KeyboardButton(text=values_bot.URGENCY_TASK['fast'])],
@@ -90,11 +98,13 @@ def keyboard_urgency_task()->types.ReplyKeyboardMarkup:
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item_urgency_task, resize_keyboard=True, one_time_keyboard=True)
 
+# кнопка отмена
 def keyboard_cancel()->types.ReplyKeyboardMarkup:
     kb_item = [
         [types.KeyboardButton(text="Отмена")],
     ]
     return types.ReplyKeyboardMarkup(keyboard=kb_item, resize_keyboard=True, one_time_keyboard=True)
 
+# удаление клавиатуры
 def del_keyboard()->types.ReplyKeyboardRemove:
     return types.ReplyKeyboardRemove()

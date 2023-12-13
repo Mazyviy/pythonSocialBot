@@ -1,3 +1,5 @@
+DATABASE_NAME = "database/database.db"
+
 TASK = {
     'products': 'Купить продукты',
     'medicines': 'Купить лекарства',

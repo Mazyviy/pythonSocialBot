@@ -3,6 +3,19 @@ import time, datetime
 import asyncio
 from config import values_bot
 
+# Функция для проверки корректности введеной даты рождения от пользователя
+def validate_date(date_string):
+    try:
+        date_obj = datetime.strptime(date_string, '%d.%m.%Y')
+        current_date = datetime.now()
+
+        if date_obj < current_date:
+            return True, date_obj
+        else:
+            return False, None
+    except ValueError:
+        return False, None
+
 # Функция, которая будет запускаться периодически и отправлять сообщения о задачах
 # с близким к концу временем выполнения у волонтеров
 async def check_tasks_for_deadline_work(bot):

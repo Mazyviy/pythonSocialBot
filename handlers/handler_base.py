@@ -15,8 +15,9 @@ router_base = Router()
 async def process_start_command(message: types.Message, state: FSMContext):
     bot_info = await message.bot.get_me()
     bot_name = bot_info.first_name
-    await message.answer(f"Добро пожаловать {message.from_user.full_name} в <b>{bot_name}</b>! 🤝\nМы здесь, чтобы помогать вам и вашему сообществу. Начнем! 💪\n"
-                         f"ВНИМАНИЕ!!! Этот проект в разработке!!! ")
+    await message.answer(f"Добро пожаловать {message.from_user.full_name} в <b>{bot_name}</b>! 🤝\n"
+                         f"Мы здесь, чтобы помогать вам и вашему сообществу. Начнем! 💪\n"
+                         f"ВНИМАНИЕ!!! Этот проект в разработке!!!")
     result = await db.get_user_existence_in_db(message.from_user.id)
     if result is None:
         await get_menu_registration(message, state)
@@ -32,11 +33,11 @@ async def process_start_command(message: types.Message, state: FSMContext):
 async def get_menu(message: types.Message):
     results=await db.get_user_existence_in_db(user_id=message.from_user.id)
     if results[5] == "client" and results[6]==1:
-        await message.answer("Выберите пункт меню", reply_markup=kb.keyboard_menu_c())
+        await message.answer(text="Выберите пункт меню", reply_markup=kb.keyboard_menu_c())
     elif results[5] == "volunteer" and results[6] == 1:
-        await message.answer("Выберите пункт меню", reply_markup=kb.keyboard_menu_v())
+        await message.answer(text="Выберите пункт меню", reply_markup=kb.keyboard_menu_v())
     elif results[5] == "admin" and results[6] == 1:
-        await message.answer("Выберите пункт меню", reply_markup=kb.keyboard_menu_a())
+        await message.answer(text="Выберите пункт меню", reply_markup=kb.keyboard_menu_a())
 
 # Обработка всех сообщений пользователя, для которых не определен обработчик
 # Если пользователь авторизован, ему выдается меню,

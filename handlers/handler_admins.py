@@ -27,15 +27,19 @@ async def a_task_registration(message:types.Message):
         if results:
             for item in results:
                 kb_item = [
-                    types.InlineKeyboardButton(text="✅ Принять",
-                                         callback_data=CbDataRegestration(action='add', user_id=str(item[3]),
-                                                                          user_role=item[1]).pack()),
-                    types.InlineKeyboardButton(text="❌ Отклонить",
-                                         callback_data=CbDataRegestration(action='del', user_id=str(item[3]),
-                                                                          user_role=item[1]).pack())
+                    types.InlineKeyboardButton(text="✅ Принять",callback_data=CbDataRegestration(action='add',
+                                                                                                 user_id=str(item[3]),
+                                                                                                 user_role=item[1]).pack()),
+                    types.InlineKeyboardButton(text="❌ Отклонить",callback_data=CbDataRegestration(action='del',
+                                                                                                   user_id=str(item[3]),
+                                                                                                   user_role=item[1]).pack())
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
-                await message.answer(f"↘️ №: {item[0]}. Роль: {values_bot.USER_ROLE_ICON[item[1]]} {values_bot.USER_ROLE[item[1]]}\n🎫ФИО: {item[2]} ({item[3]})\n📞Номер: {item[4]}\n🌎Адрес: {item[5]}", reply_markup=keyboard)
+                await message.answer(text=f"↘️ №: {item[0]}. Роль: {values_bot.USER_ROLE_ICON[item[1]]} {values_bot.USER_ROLE[item[1]]}\n"
+                                          f"🎫ФИО: {item[2]} ({item[3]})\n"
+                                          f"📞Номер: {item[4]}\n"
+                                          f"🌎Адрес: {item[5]}",
+                                     reply_markup=keyboard)
         else:
             await message.answer("Заявок на рассмотрение нет")
 
@@ -86,7 +90,7 @@ async def a_list_v(message:types.Message):
 async def a_list_a(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "admin" and exist[6] == 1:
-        list_users = await db.get_list_users("admin", 1)
+        list_users = await db.get_list_users(user_role="admin", user_status=1)
         if list_users:
             array_text = ''
             for item in list_users:
@@ -108,7 +112,7 @@ async def a_list_a(message:types.Message):
 async def a_list_c(message:types.Message):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "admin" and exist[6] == 1:
-        list_users = await db.get_list_users("client",1)
+        list_users = await db.get_list_users(user_role="client",user_status=1)
         if list_users:
             array_text = ''
             for item in list_users:
@@ -136,7 +140,12 @@ async def a_list_free_task(message:types.Message):
             for item in list_tasks:
                 user_adr = await db.get_user_adr(item[3])
                 user_name = await db.get_user_name(item[3])
-                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name[0]} ({item[3]})\nДата создания: {item[6]}\n\n")
+                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n"
+                                   f"📋Подробности: {item[2]}\n"
+                                   f"🌍Адрес: {user_adr[0]}\n"
+                                   f"⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n"
+                                   f"🛏️Клиент: {user_name[0]} ({item[3]})\n"
+                                   f"Дата создания: {item[6]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -161,7 +170,14 @@ async def a_worked_task(message:types.Message):
                 user_adr = await db.get_user_adr(item[3])
                 user_name_c = await db.get_user_name(item[3])
                 user_name_v = await db.get_user_name(item[4])
-                array_text_item =(f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n{item}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name_c[0]} ({item[3]})\n🏃🏻Выполняет: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\n\n")
+                array_text_item =(f"↘️ №: {str(item[0])}. Задача: {item[1]}\n"
+                                  f"📋Подробности: {item[2]}\n"
+                                  f"🌍Адрес: {user_adr[0]}\n"
+                                  f"⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n"
+                                  f"🛏️Клиент: {user_name_c[0]} ({item[3]})\n"
+                                  f"🏃Выполняет: {user_name_v[0]} ({item[4]})\n"
+                                  f"Дата создания: {item[6]}\n"
+                                  f"Взята в работу: {item[7]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -180,20 +196,28 @@ async def a_completed_task(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "admin" and exist[6] == 1:
         await state.set_state(state=ClassStateTaskClose.submenu)
-        await message.answer('выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
+        await message.answer(text='выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
 
 @router_admin.message(F.text.in_({'за все время', 'за год', 'за месяц', 'за день'}), ClassStateTaskClose.submenu)
 async def a_completed_task_date(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "admin" and exist[6] == 1:
-        list_tasks = await db.get_list_tasks("close",date_value= message.text)
+        list_tasks = await db.get_list_tasks(state_task="close", date_value= message.text)
         if list_tasks:
             array_text = ""
             for item in list_tasks:
                 user_adr = await db.get_user_adr(item[3])
                 user_name_c = await db.get_user_name(item[3])
                 user_name_v = await db.get_user_name(item[4])
-                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n📋Подробности: {item[2]}\n🌍Адрес: {user_adr[0]}\n⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n🛏️Клиент: {user_name_c[0]} ({item[3]})\n🏃🏻Выполнил: {user_name_v[0]} ({item[4]})\nДата создания: {item[6]}\nВзята в работу: {item[7]}\nЗакрыта: {item[8]}\n\n")
+                array_text_item = (f"↘️ №: {str(item[0])}. Задача: {item[1]}\n"
+                                   f"📋Подробности: {item[2]}\n"
+                                   f"🌍Адрес: {user_adr[0]}\n"
+                                   f"⏳Срочность: {values_bot.URGENCY_TASK[item[5]]}\n"
+                                   f"🛏️Клиент: {user_name_c[0]} ({item[3]})\n"
+                                   f"🏃Выполнил: {user_name_v[0]} ({item[4]})\n"
+                                   f"Дата создания: {item[6]}\n"
+                                   f"Взята в работу: {item[7]}\n"
+                                   f"Закрыта: {item[8]}\n\n")
                 if len(array_text) + len(array_text_item) < 4096:
                     array_text += array_text_item
                 else:
@@ -212,7 +236,7 @@ async def a_total_statistics(message:types.Message, state: FSMContext):
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "admin" and exist[6] == 1:
         await state.set_state(state=ClassStateStatistics.submenu)
-        await message.answer('выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
+        await message.answer(text='выберите диапазон', reply_markup=kb.keyboard_submenu_statistics_a())
 
 # Эта функция обрабатывает сообщения от администратора,
 # проверяет его права доступа и, если они соответствуют,
@@ -228,10 +252,18 @@ async def a_statistics(message:types.Message, state: FSMContext):
         cur=''
 
         if message.text == 'за все время':
-            count_v = await db.get_count_data("users", "user_role", "волонтер")
-            count_b = await db.get_count_data("users", "user_role", "заказчик")
-            count_a = await db.get_count_data("users", "user_role", "администратор")
-            count_close_task = await db.get_count_data("tasks", "state_task", "close")
+            count_v = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="волонтер")
+            count_b = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="заказчик")
+            count_a = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="администратор")
+            count_close_task = await db.get_count_data(db_name="tasks",
+                                                       column_name="state_task",
+                                                       column_value="close")
             cur = message.text
             return await message.answer(f"<b>за {cur}</b>\n"
                                  f"Кол-во волонтеров: {count_v[0]}\n"
@@ -240,10 +272,26 @@ async def a_statistics(message:types.Message, state: FSMContext):
                                  f"Кол-во закрытых задач: {count_close_task[0]}\n")
 
         elif message.text == 'за год':
-            count_v = await db.get_count_data("users", "user_role", "волонтер", 'date_addition','year')
-            count_b = await db.get_count_data("users", "user_role", "заказчик", column_date='date_addition',date_value='year')
-            count_a = await db.get_count_data("users", "user_role", "администратор", column_date='date_addition',date_value='year')
-            count_close_task = await db.get_count_data("tasks", "state_task", "close", column_date='date_task_create',date_value='year')
+            count_v = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="волонтер",
+                                              column_date='date_addition',
+                                              date_value='year')
+            count_b = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="заказчик",
+                                              column_date='date_addition',
+                                              date_value='year')
+            count_a = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="администратор",
+                                              column_date='date_addition',
+                                              date_value='year')
+            count_close_task = await db.get_count_data(db_name="tasks",
+                                                       column_name="state_task",
+                                                       column_value="close",
+                                                       column_date='date_task_create',
+                                                       date_value='year')
             cur = datetime.datetime.now().year
             return await message.answer(f"<b>за {cur}</b>\n"
                                  f"Кол-во волонтеров: {count_v[0]} (+{count_v[0] - count_v[1]})\n"
@@ -251,16 +299,27 @@ async def a_statistics(message:types.Message, state: FSMContext):
                                  f"Кол-во администраторов: {count_a[0]} ({'{:+d}'.format(count_a[0] - count_a[1])})\n"
                                  f"Кол-во закрытых задач: {count_close_task[0]} ({'{:+d}'.format(count_close_task[0] - count_close_task[1])})\n")
 
-
         elif message.text == 'за месяц':
-            count_v = await db.get_count_data("users", "user_role", "волонтер", column_date='date_addition',
+            count_v = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="волонтер",
+                                              column_date='date_addition',
                                               date_value='month')
-            count_b = await db.get_count_data("users", "user_role", "заказчик", column_date='date_addition',
+            count_b = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="заказчик",
+                                              column_date='date_addition',
                                               date_value='month')
-            count_a = await db.get_count_data("users", "user_role", "администратор", column_date='date_addition',
+            count_a = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="администратор",
+                                              column_date='date_addition',
                                               date_value='month')
-            count_close_task = await db.get_count_data("tasks", "state_task", "close", column_date='date_task_create',
-                                                        date_value='month')
+            count_close_task = await db.get_count_data(db_name="tasks",
+                                                       column_name="state_task",
+                                                       column_value="close",
+                                                       column_date='date_task_create',
+                                                       date_value='month')
             current_date = datetime.datetime.now()
             cur = current_date.strftime('%B')
 
@@ -271,14 +330,26 @@ async def a_statistics(message:types.Message, state: FSMContext):
                                  f"Кол-во закрытых задач: {count_close_task[0]} ({'{:+d}'.format(count_close_task[0] - count_close_task[1])})\n")
 
         elif message.text == 'за день':
-            count_v = await db.get_count_data("users", "user_role", "волонтер", column_date='date_addition',
+            count_v = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="волонтер",
+                                              column_date='date_addition',
                                               date_value='day')
-            count_b = await db.get_count_data("users", "user_role", "заказчик", column_date='date_addition',
+            count_b = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="заказчик",
+                                              column_date='date_addition',
                                               date_value='day')
-            count_a = await db.get_count_data("users", "user_role", "администратор", column_date='date_addition',
+            count_a = await db.get_count_data(db_name="users",
+                                              column_name="user_role",
+                                              column_value="администратор",
+                                              column_date='date_addition',
                                               date_value='day')
-            count_close_task = await db.get_count_data("tasks", "state_task", "close", column_date='date_task_create',
-                                                        date_value='day')
+            count_close_task = await db.get_count_data(db_name="tasks",
+                                                       column_name="state_task",
+                                                       column_value="close",
+                                                       column_date='date_task_create',
+                                                       date_value='day')
             cur = "сегодня"
             return await message.answer(f"<b>за {cur}</b>\n"
                                  f"Кол-во волонтеров: {count_v[0]} (+{count_v[0] - count_v[1]})\n"
