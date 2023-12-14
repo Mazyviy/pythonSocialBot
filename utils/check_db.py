@@ -1,6 +1,7 @@
 from database import db
 import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from config import values_bot
 
 # Функция, которая будет запускаться периодически и отправлять сообщения о задачах
 # с близким к концу временем выполнения у волонтеров
@@ -23,7 +24,7 @@ async def check_tasks_for_deadline_work(bot):
                 out=''
                 hours, minutes, seconds = map(int, (str(new_datetime - current_datetime).split('.')[0]).split(':'))
                 if hours > 0:
-                    out= f"{hours} часов"
+                    out= f"{hours} час(a/ов)"
                 else:
                     out=f"{minutes} минут"
 
@@ -44,7 +45,7 @@ async def check_tasks_for_deadline_create(bot):
 
             if int((new_datetime - current_datetime).total_seconds()/60)%5==0 and int((new_datetime - current_datetime).total_seconds()/60)==10:
                 hours, minutes, seconds = map(int, (str(new_datetime - current_datetime).split('.')[0]).split(':'))
-                text =f"К сожалению, время для выполнения вашей задачи № {item[0]} - {item[1]} заканчивается, осталось {minutes} минут. По истечению времени задача будет автоматически закрыта!"
+                text =f"К сожалению, время для выполнения вашей задачи № {item[0]} - {item[1]} заканчивается, осталось {minutes} минут(а). По истечению времени задача будет автоматически закрыта!"
                 await bot.send_message(chat_id=item[3], text=text)
 
             elif int((new_datetime - current_datetime).total_seconds()/60)==0:

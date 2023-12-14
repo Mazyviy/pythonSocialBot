@@ -85,7 +85,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_iteam])
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.bot.send_message(user_id=user_id,
+            await call.bot.send_message(chat_id=user_id,
                                         text=f"↘️ № {task_id}. Задача: {task[0]}\n"
                                              f"🏃🏻Волонтер: {call.from_user.id}\n"
                                              f"Волонтер сделал просьбу?",
@@ -99,7 +99,7 @@ async def button_press_work_task(call: types.CallbackQuery, callback_data: dict)
     elif action == "refuse":
         state = await db.get_task_state(task_id=task_id)
         if state is not None and state[0]:
-            await db.upd_state_task_v(task_id, column_name="date_task_work",state_task="create")
+            await db.upd_state_task_v(task_id=task_id, column_name="date_task_work",state_task="create")
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.answer(text=f"Вы отказались от задачи № {task_id} - {task[0]}", show_alert=True)
         else:

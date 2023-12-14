@@ -9,6 +9,7 @@ class ClassStateTaskMedicines(StatesGroup):
     task_urgency_medicines = State()
 
 class ClassStateTaxi(StatesGroup):
+    start_taxi = State()
     first_adress_taxi = State()
     second_adress_taxi = State()
     task_urgency_taxi = State()

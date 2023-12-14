@@ -7,6 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from states.states_admin import ClassStateStatistics, ClassStateTaskClose
 from config import values_bot
+from datetime import datetime
 
 router_admin = Router()
 
@@ -291,7 +292,7 @@ async def a_statistics(message:types.Message, state: FSMContext):
                                                        column_value="close",
                                                        column_date='date_task_create',
                                                        date_value='year')
-            cur = datetime.datetime.now().year
+            cur = datetime.now().year
             return await message.answer(f"<b>за {cur}</b>\n"
                                  f"Кол-во волонтеров: {count_v[0]} (+{count_v[0] - count_v[1]})\n"
                                  f"Кол-во заказчиков: {count_b[0]} ({'{:+d}'.format(count_v[0] - count_v[1])})\n"
@@ -319,7 +320,7 @@ async def a_statistics(message:types.Message, state: FSMContext):
                                                        column_value="close",
                                                        column_date='date_task_create',
                                                        date_value='month')
-            current_date = datetime.datetime.now()
+            current_date = datetime.now()
             cur = current_date.strftime('%B')
 
             return await message.answer(f"<b>за {cur}</b>\n"

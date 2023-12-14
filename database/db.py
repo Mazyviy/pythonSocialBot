@@ -238,13 +238,13 @@ async def get_user_nunmber(user_id):
 # функция для обновления состояния и даты закрытия задачи.
 async def upd_state_task(task_id, column_name,state_task):
     current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query = "UPDATE tasks SET state_task=?, {column_name}=? WHERE id=?"
+    query = f"UPDATE tasks SET state_task=?, {column_name}=? WHERE id=?"
     await db.execute(query, (state_task,current_datetime, task_id,))
     await db.commit()
 
 async def upd_state_task_v(task_id, column_name,state_task):
     current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query = "UPDATE tasks SET state_task=?, {column_name}=?, user_perform='', date_task_work='' WHERE id=?"
+    query = f"UPDATE tasks SET state_task=?, {column_name}=?, user_perform='', date_task_work='' WHERE id=?"
     await db.execute(query, (state_task,current_datetime, task_id,))
     await db.commit()
 

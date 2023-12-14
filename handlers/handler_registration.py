@@ -1,13 +1,11 @@
 from aiogram import Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from datetime import datetime
 from database import db
 from keyboards import keyboards as kb
 from states.states_registration import ClassStateRegistration
 from config import values_bot
-from datetime import datetime
-import re
+from utils.functions import validate_date, check_address_format
 
 router_registration = Router()
 
@@ -92,10 +90,10 @@ async def set_number_registration(message: types.Message, state:FSMContext):
 @router_registration.message(ClassStateRegistration.adr_registration)
 async def set_adr_registration(message: types.Message, state:FSMContext):
     if message.text.startswith('/'):
-        await message.reply("Пожалуйста, введите дату, а не команду.")
+        await message.reply("Пожалуйста, предоставьте номер, а не команду.")
         return
 
-    address_format = await check_address_format(message.text)
+    address_format = await check_address_format(address=message.text)
     if address_format:
         await db.upd_data_in_db(column_name="user_address",
                                 data=message.text,
@@ -114,23 +112,3 @@ async def set_adr_registration(message: types.Message, state:FSMContext):
     else:
         await message.answer("Вы ввели неккоректный адрес, введите еще раз.")
         return await state.set_state(ClassStateRegistration.adr_registration)
-
-async def check_address_format(address):
-    pattern = r'^[А-Яа-яЁё\s]+,\s*[\d\s]?[А-Яа-яЁё\s]+\s*\d*,\s*\d+\s*[а-яА-Я]?\s*,\s*\d+\s*[а-яА-Я]?$'
-    if re.match(pattern, address):
-        return True
-    else:
-        return False
-
-# Функция для проверки корректности введеной даты рождения от пользователя
-async def validate_date(date_string):
-    try:
-        date_obj = datetime.strptime(date_string, '%d.%m.%Y')
-        current_date = datetime.now()
-
-        if date_obj < current_date:
-            return True, date_obj
-        else:
-            return False, None
-    except ValueError:
-        return False, None

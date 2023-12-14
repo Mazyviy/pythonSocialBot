@@ -9,6 +9,7 @@ from keyboards import keyboards as kb
 from states.states_client import ClassStateTaskProducts, ClassStateTaskMedicines, ClassStateTaxi, ClassStateDoctor
 from handlers.handler_volunteers import CbDataCompletedTask
 from config import values_bot
+from utils.functions import check_address_format
 
 router_client = Router()
 
@@ -16,6 +17,11 @@ class CbDataDelTask(CallbackData, prefix="id2"):
     task_id: Optional[int] = None
     task: str
     action: str
+
+@router_client.message(F.text == "Отмена")
+async def cancel(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text="Выберите меню",reply_markup=kb.keyboard_menu_c())
 
 # Эта функция обрабатывает сообщения с текстом "Мои заявки" от клиента/заказчика,
 # проверяет его права доступа и, если они соответствуют,
@@ -40,7 +46,7 @@ async def c_my_request(message: types.Message):
                     await message.answer(f"↘️ №: {item[0]}. Задача: {item[1]}\n"
                                          f"📋Подробности: {item[2]}\n"
                                          f"⏳Срочность: {values_bot.URGENCY_TASK[f'{item[3]}']}\n"
-                                         f"🏃🏻Волонтер: {user_name[0]} (т. {user_number[0]}\n"
+                                         f"🏃🏻Волонтер: {user_name[0]} (т. {user_number[0]})\n"
                                          f"Дата создания: {item[4]}",
                                          reply_markup=keyboard)
                 else:
@@ -172,6 +178,7 @@ async def c_set_list_products(message: types.Message, state:FSMContext):
 # просит клиента написать адрес отправления
 @router_client.message(F.text == values_bot.TASK['taxi'])
 async def c_taxi(message: types.Message, state: FSMContext):
+    await state.set_state(ClassStateTaxi.start_taxi)
     exist = await db.get_user_existence_in_db(message.from_user.id)
     if exist is not None and exist[5] == "client" and exist[6] == 1:
         await message.answer(text="Напишите адрес отправления (город улица дом)",reply_markup=kb.keyboard_cancel())
@@ -182,16 +189,37 @@ async def c_taxi(message: types.Message, state: FSMContext):
 @router_client.message(lambda message: message.content_type == types.ContentType.TEXT, ClassStateTaxi.first_adress_taxi)
 async def c_taxi_first_adress(message: types.Message, state=FSMContext):
     await state.update_data(first_adress_taxi=message.text)
-    await message.answer(text="Напишите конечный адрес (город улица дом)",reply_markup=kb.keyboard_cancel())
-    await state.set_state(ClassStateTaxi.second_adress_taxi)
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите адрес, а не команду.")
+        return
+
+    address_format = await check_address_format(address=message.text, check_adr_3_words=True)
+    if address_format:
+        await message.answer(text="Напишите конечный адрес (город, улица, дом)", reply_markup=kb.keyboard_cancel())
+        await state.set_state(ClassStateTaxi.second_adress_taxi)
+
+    else:
+        await message.answer("Вы ввели неккоректный адрес, введите еще раз в формате (город, улица, дом).")
+        return await state.set_state(ClassStateTaxi.first_adress_taxi)
 
 # проверяет введеный конечный адрес на существование, если все good
 # просит клиента выберать важность задачи, иначе просит ввести конечный адресс еще раз
 @router_client.message(lambda message: message.content_type == types.ContentType.TEXT, ClassStateTaxi.second_adress_taxi)
 async def c_taxi_second_adress(message: types.Message, state=FSMContext):
-    await state.update_data(second_adress_taxi=message.text)
-    await message.answer(text="Выберите важность задачи", reply_markup=kb.keyboard_urgency_task())
-    await state.set_state(ClassStateTaxi.task_urgency_taxi)
+    await state.update_data(first_adress_taxi=message.text)
+    if message.text.startswith('/'):
+        await message.reply("Пожалуйста, введите адрес, а не команду.")
+        return
+
+    address_format = await check_address_format(address=message.text, check_adr_3_words=True)
+    if address_format:
+        await state.update_data(second_adress_taxi=message.text)
+        await message.answer(text="Выберите важность задачи", reply_markup=kb.keyboard_urgency_task())
+        await state.set_state(ClassStateTaxi.task_urgency_taxi)
+
+    else:
+        await message.answer("Вы ввели неккоректный адрес, введите еще раз в формате (город, улица, дом).")
+        return await state.set_state(ClassStateTaxi.second_adress_taxi)
 
 # добавляет задачу в базу
 @router_client.message(ClassStateTaxi.task_urgency_taxi)
@@ -225,8 +253,3 @@ async def c_task_assurance(call: types.CallbackQuery, callback_data: dict):
     elif answer == "no":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.bot.send_message(user_perform, text=f"🙁 Вы не выполнили задачу № {id} - {task[0]}")
-
-@router_client.message(F.text == "Отмена")
-async def cancel(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer(text="Выберите меню",reply_markup=kb.keyboard_menu_c())
