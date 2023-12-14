@@ -15,6 +15,14 @@ from handlers.handler_admins import router_admin
 from utils.commands import set_commands
 from handlers.handler_tests import router_test
 
+async def send_notification(bot, message):
+    list_admins = await db.get_admins()
+    try:
+        for item in list_admins:
+            await bot.send_message(item[0], message)
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомления: {e}")
+
 async def main():
     # Запуск базы данных
     await db.db_start()
@@ -26,6 +34,7 @@ async def main():
     storage = MemoryStorage()
     # Создание диспетчера для обработки команд и сообщений бота
     dp = Dispatcher(storage=storage)
+    await send_notification(bot, message="Бот был успешно запущен.")
     # Подключение роутеров для обработки различных типов сообщений
     await set_commands(bot)
     dp.include_routers(router_registration, router_volunteer, router_client, router_admin, router_test, router_base)
@@ -36,6 +45,7 @@ async def main():
         # Запуск получения обновлений от бота через лонг-поллинг
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally :
+        await send_notification(bot, message="Бот был остановлен.")
         utils.check_db.stop_check()
         # Закрытие сессии бота
         await bot.session.close()
