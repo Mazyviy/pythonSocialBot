@@ -119,6 +119,7 @@ async def free_tasks(message: types.Message):
             for item in list_tasks:
                 user_adr = await db.get_user_adr(item[3])
                 user_name = await db.get_user_name(item[3])
+                user_address = ", ".join(user_adr[0].split(", ")[:3])
                 kb_item = [
                     types.InlineKeyboardButton(text="Взять",
                                                callback_data=CbDataFreeTask(action='add',
@@ -129,10 +130,11 @@ async def free_tasks(message: types.Message):
                                                ),
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[kb_item])
+
                 await message.answer(text=f"↘️ № {item[0]}. Задача: {item[1]}\n"
                                      f"📋Подробности: {item[2]}\n"
                                      f"⏳Срочность: {values_bot.URGENCY_TASK[f'{item[5]}']}\n"
-                                     f"🌍Адрес: {user_adr[0]}\n"
+                                     f"🌍Адрес: {user_address}\n"
                                      f"🛏️Заказчик: {user_name[0]}\n"
                                      f"Дата создания: {item[6]}\n",
                                      reply_markup=keyboard
